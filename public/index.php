@@ -9,4 +9,4 @@ $page = $http->request('GET', 'http://www.receita.fazenda.gov.br/pessoajuridica/
 
 echo "oi";
 
-dump($page);
+dump($page['headers']);
