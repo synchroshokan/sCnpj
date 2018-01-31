@@ -1,31 +1,12 @@
 <?php 
-use \GuzzleHttp\Client;
+use \sCnpj\sCnpj as c;
 
 require __DIR__.'/../vendor/autoload.php';
 
-$http = new Client();
+$img = new c();
 
-$request = $http->request('GET', 'http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/Cnpjreva_Solicitacao.asp');
-$headers = $request->getHeaders();
-$cookie = $headers['Set-Cookie'];
+$imageString = $img->getImg();
 
-$image = $http->request('GET', 'http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/captcha/gerarCaptcha.asp');
-$x = $image->getBody()->getContents();
+file_put_contents(__DIR__.'/z.png', $imageString);
 
-echo base64_encode($x);
-
-file_put_contents(__DIR__.'/z.png', $x);
-
-dump($image->getBody()->getContents(), $cookie);
-?>
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Captch</title>
-</head>
-<body>
-	<label>Imagem<input type="text" name="" value="">
-	<img src="z.png" alt="">
-	</label>
-</body>
-</html>
+echo "<img src='z.png'>";
