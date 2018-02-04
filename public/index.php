@@ -1,12 +1,9 @@
 <?php 
-use \sCnpj\sCnpj as c;
+use \sCnpj\simpleRouter;
+use \sCnpj\sCnpj;
 
 require __DIR__.'/../vendor/autoload.php';
 
-$img = new c();
+$route = new simpleRouter();
 
-$imageString = $img->getImg();
-
-file_put_contents(__DIR__.'/z.png', $imageString);
-
-echo "<img src='z.png'>";
+$route->run();
