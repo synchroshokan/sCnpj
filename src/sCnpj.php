@@ -166,4 +166,71 @@ class sCnpj
 		$this->template->load('resultadoCnpj', $result);
 		return true;
 	}
+
+	public function sintegra()
+	{
+		$result = array();
+
+		$request = $this->http;
+		$cookie = $request->get('https://app.sefa.pa.gov.br/Sintegra/');
+		$cookie = $cookie->getHeaders()['Set-Cookie'][0];
+
+		$requestImg = $request->get('https://app.sefa.pa.gov.br/Sintegra/image/imagemAntiRobo/1.jpg', [
+			'headers' => [
+				'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+				'Accept-Encoding' => 'gzip, deflate, br',
+				'Accept-Language' => 'en-US,en;q=0.9',
+				'Cache-Control' => 'max-age=0',
+				'Connection' => 'keep-alive',
+				'Cookie' => $cookie,
+				'Host' => 'app.sefa.pa.gov.br',
+				'Upgrade-Insecure-Requests' => 1,
+				'User-Agent' => $_SERVER['HTTP_USER_AGENT']
+			]
+		]);
+
+		$requestImg = $requestImg->getBody()->getContents();
+
+		$result['cookie'] = $cookie;
+		$result['img'] = base64_encode($requestImg);
+
+		$this->template->load('sintegra', $result);
+	}
+
+	public function consultaSintegra()
+	{
+		$request = $this->http;
+
+		$cookie = $_POST['cookie'];
+		$cnpj = $_POST['cnpj'];
+		$solve = $_POST['solve'];
+
+		$headers = [
+			'Accept' => 'text/html, */*',
+			'Accept-Encoding' => 'gzip, deflate, br',
+			'Accept-Language' => 'en-US,en;q=0.9',
+			'Connection' => 'keep-alive',
+			'Content-Length' => '36',
+			'Content-Type' => 'application/x-www-form-urlencoded',
+			'Cookie' => $cookie,
+			'Host' => 'app.sefa.pa.gov.br',
+			'Origin' => 'https://app.sefa.pa.gov.br',
+			'Referer' => 'https://app.sefa.pa.gov.br/Sintegra/',
+			'User-Agent' => $_SERVER['HTTP_USER_AGENT'],
+			'X-Requested-With' => 'XMLHttpRequest'
+		];
+
+		$params = array(
+			'CNPJ' => $cnpj,
+			'OP' => 1,
+			'CODIGO' => $solve
+		);
+
+		$consulta = $request->get('https://app.sefa.pa.gov.br/Sintegra/consulta.do', [
+			'headers' => $headers,
+			'form_params' => $params
+		]);
+
+		dump($consulta->getBody());
+	}
 }
