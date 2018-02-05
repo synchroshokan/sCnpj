@@ -43,8 +43,6 @@ class sCnpj
 			]
 		]);
 
-		dump($requestImg);
-
 		$image = $requestImg->getBody()->getContents();
 
 		$data = array(
@@ -92,8 +90,11 @@ class sCnpj
 		}
 
 		if ($crawler->filter('body > div > table:nth-child(3) > tr:nth-child(2) > td > b > font')->count() > 0) {
-			throw new Exception('Erro ao consultar. O CNPJ informado não existe no cadastro.', 99);
+			throw new \Exception('Erro ao consultar. O CNPJ informado não existe no cadastro.', 99);
 		}
+		
+		dump($crawler);
+		die();
 
 		$td = $crawler->filter('body > div > table:nth-child(3) > tr > td');
 		foreach ($td->filter('td') as $td) {
@@ -146,6 +147,7 @@ class sCnpj
 					default: $key = null;
 					break;
 				}
+
 				if (!is_null($key)) {
 					$bs = $td->filter('font > b');
 					foreach ($bs as $b) {
@@ -226,11 +228,37 @@ class sCnpj
 			'CODIGO' => $solve
 		);
 
-		$consulta = $request->get('https://app.sefa.pa.gov.br/Sintegra/consulta.do', [
+		$consulta = $request->post('https://app.sefa.pa.gov.br/Sintegra/consulta.do', [
 			'headers' => $headers,
 			'form_params' => $params
 		]);
 
-		dump($consulta->getBody());
+		$crawler = new Crawler($consulta->getBody()->getContents());
+		
+		$consultLink = $crawler->filter('a');
+
+		$c = $consultLink->attr('href');
+
+		$sintegraLink = 'https://app.sefa.pa.gov.br'.$c;
+
+		$sintegraHeaders = [
+			'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+			'Accept-Encoding' => 'gzip, deflate, br',
+			'Accept-Language' => 'en-US,en;q=0.9',
+			'Connection' => 'keep-alive',
+			'Cookie' => $cookie,
+			'Host' => 'app.sefa.pa.gov.br',
+			'Referer' => 'https://app.sefa.pa.gov.br/Sintegra/',
+			'Upgrade-Insecure-Requests' => 1,
+			'User-Agent' => $_SERVER['HTTP_USER_AGENT']
+		];
+
+		$result = $request->post($sintegraLink, [
+			'headers' => $sintegraHeaders
+		]);
+
+		$finalResult = new Crawler($result->getBody()->getContents());
+
+		dump($result->getBody()->getContents(), $finalResult);
 	}
 }
