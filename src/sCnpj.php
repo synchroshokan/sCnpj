@@ -92,9 +92,6 @@ class sCnpj
 		if ($crawler->filter('body > div > table:nth-child(3) > tr:nth-child(2) > td > b > font')->count() > 0) {
 			throw new \Exception('Erro ao consultar. O CNPJ informado não existe no cadastro.', 99);
 		}
-		
-		dump($crawler);
-		die();
 
 		$td = $crawler->filter('body > div > table:nth-child(3) > tr > td');
 		foreach ($td->filter('td') as $td) {

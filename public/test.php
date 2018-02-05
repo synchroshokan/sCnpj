@@ -1,6 +1,5 @@
 <?php 
-use \Symfony\Component\DomCrawler\Crawler;
-use \Symfony\Component\DomCrawler\Link;
+use Symfony\Component\DomCrawler\Crawler;
 
 require __DIR__.'/../vendor/autoload.php';
 
@@ -17,7 +16,7 @@ $xml = <<<'XML'
       \t\t\t<table width="670" border="1" cellspacing="0" cellpadding="3"><tr><td class="td-title3" width="150px">Data da consulta:</td>\n
       \t      \t\t\t\t<td class="td-conteudotwo">\n
       \t      \t\t\t\t\t\n
-      \t\t\t\t \t\t\t<strong>04/02/2018</strong>\t\t\n
+      \t\t\t\t \t\t\t<strong>05/02/2018</strong>\t\t\n
       \t      \t\t\t\t</td>\n
       \t    \t\t\t</tr></table><div id="conteudo">\t\n
       \t\t\t\t<label class="font-title">IDENTIFICA&#xC7;&#xC3;O</label>\t\t\t\t\n
@@ -109,6 +108,16 @@ $xml = <<<'XML'
 XML;
 
 $crawler = new Crawler($xml);
-$link = $crawler->filter('a');
-	
-dump($link->attr('href'), $link);
+
+$filter = $crawler->filter('body > div');
+
+$string = str_replace('\t', '', $filter->text());
+
+$string = str_replace('\n', '', $string);
+
+$string = trim(preg_replace('/\s+/', ' ', $string));
+
+$array = explode('\n',$string);
+
+echo "______________________________________";
+dump($filter, $filter->text(), $array);
