@@ -1,11 +1,11 @@
 <?php 
-namespace sCnpj;
+namespace asm;
 
 use \GuzzleHttp\Client;
-use \sCnpj\loadTemplate;
+use \asm\loadTemplate;
 use Symfony\Component\DomCrawler\Crawler;
 
-class sCnpj
+class asm
 {
 	private $cookie;
 	private $http;
