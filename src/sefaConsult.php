@@ -1,5 +1,5 @@
 <?php 
-namespace sCnpj;
+namespace asm;
 
 use \GuzzleHttp\Client;
 use Symfony\Component\DomCrawler\Crawler;
@@ -37,7 +37,7 @@ class sefaConsult
 		$requestImg = $requestImg->getBody()->getContents();
 
 		$result['cookie'] = $cookie;
-		$result['img'] = base64_encode($requestImg);
+		$result['img'] = 'data:image/png;base64,'.base64_encode($requestImg);
 
 		return $result;
 	}
@@ -108,7 +108,7 @@ class sefaConsult
 	 * regime_de_apuracao_de_icms
 	 * ]
 	 */
-	public function consultar(string $cookie, string $cnpj, string $solveCaptcha, $option = 1)
+	public function consultar(string $cnpj, string $cookie, string $solveCaptcha, $option = 1)
 	{
 		$request = new Client();
 		$finalResult = array();

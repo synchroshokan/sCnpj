@@ -1,5 +1,5 @@
 <?php 
-namespace sCnpj;
+namespace asm;
 
 use \GuzzleHttp\Client;
 use Symfony\Component\DomCrawler\Crawler;
@@ -7,11 +7,12 @@ use Symfony\Component\DomCrawler\Crawler;
 class receitaFederalConsult
 {
 	private $cookie;
+	private $http;
 
 	function __construct()
 	{
-		$http = new Client();
-		$request = $http->request('GET', 'http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/Cnpjreva_Solicitacao3.asp')->getHeaders();
+		$this->http = new Client();
+		$request = $this->http->request('GET', 'http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/Cnpjreva_Solicitacao3.asp')->getHeaders();
 		$cookie = $request['Set-Cookie'][0];	
 		$this->cookie = $cookie;
 	}
@@ -23,13 +24,13 @@ class receitaFederalConsult
 	 */
 	public function getParams()
 	{
-		$http = new Client();
+		$http = $this->http;
 		$cookie = $this->getCookie();
 
 		$request = $http->request('GET', 'http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/Cnpjreva_Solicitacao3.asp')->getHeaders();
 		$cookie = $request['Set-Cookie'][0];
 
-		$requestImg = $this->http->request('GET', 'http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/captcha/gerarCaptcha.asp', [
+		$requestImg = $http->request('GET', 'http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/captcha/gerarCaptcha.asp', [
 			'headers' => [
 				'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
 				'Accept-Encoding' => ['gzip, deflate'],
@@ -43,7 +44,7 @@ class receitaFederalConsult
 		]);
 
 		$image = $requestImg->getBody()->getContents();
-		$stringImage = 'data:image/png;base64,'.$image;
+		$stringImage = 'data:image/png;base64,'.base64_encode($image);
 
 		$data = array(
 			'cookie' => $cookie,
@@ -60,7 +61,7 @@ class receitaFederalConsult
 
 	public function getImage()
 	{
-		$request = new Client();
+		$request = $this->http;
 		$cookie = $this->getCookie();
 
 		$requestImg = $request->request('GET', 'http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/captcha/gerarCaptcha.asp', [
@@ -91,9 +92,10 @@ class receitaFederalConsult
 	 */
 	public function consultar($cnpj, $cookie, $solveCaptcha)
 	{
+		$http = $this->http;
 		$result = array();
 		
-		$request = $this->http->get('http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/valida.asp', [
+		$request = $http->get('http://www.receita.fazenda.gov.br/pessoajuridica/cnpj/cnpjreva/valida.asp', [
 			'headers' => [
 				'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
 				'Accept-Encoding' => 'gzip, deflate',
