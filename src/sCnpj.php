@@ -199,6 +199,7 @@ class sCnpj
 	public function consultaSintegra()
 	{
 		$request = $this->http;
+		$finalResult = array();
 
 		$cookie = $_POST['cookie'];
 		$cnpj = $_POST['cnpj'];
@@ -254,8 +255,51 @@ class sCnpj
 			'headers' => $sintegraHeaders
 		]);
 
-		$finalResult = new Crawler($result->getBody()->getContents());
+		$sintegraCrawlerResult = new Crawler($result->getBody()->getContents());
 
-		dump($result->getBody()->getContents(), $finalResult);
+		$titleField = $sintegraCrawlerResult->filter('.td-title3'); 
+		$dataField = $sintegraCrawlerResult->filter('.td-conteudotwo');
+
+		foreach ($dataField as $data) {
+			$valueDataField[] = $data->nodeValue;
+		}
+
+		foreach ($titleField as $data) {
+			$keyTitleField[] = $data->nodeValue;
+		}
+
+		$keyValues = array_map(function ($value) {
+			$value = trim(preg_replace('/\s+/', '_', $value), ':');
+			$value = str_replace('\t', '', $value);
+			$value = str_replace('\n', '', $value);
+			$value = strtolower($value);
+			$value = $this->limpaString($value);
+			return $value;
+		}, $keyTitleField);
+
+		$values = array_map(function ($value) {
+			$value = trim(preg_replace('/\s+/', ' ', $value), ' ');
+			$value = str_replace('\t', '', $value);
+			$value = str_replace('\n', '', $value);
+			return $value;
+		}, $valueDataField);		
+
+		foreach ($values as $key => $value) {
+			$finalResult[$keyValues[$key]] = $value;
+		}
+
+		dump($finalResult);
+
+		$this->template->load('resultSintegra', $finalResult);
+	}
+
+	public function limpaString($str) { 
+		$str = preg_replace('/[áàãâä]/ui', 'a', $str);
+		$str = preg_replace('/[éèêë]/ui', 'e', $str);
+		$str = preg_replace('/[íìîï]/ui', 'i', $str);
+		$str = preg_replace('/[óòõôö]/ui', 'o', $str);
+		$str = preg_replace('/[úùûü]/ui', 'u', $str);
+		$str = preg_replace('/[ç]/ui', 'c', $str);
+		return $str;
 	}
 }

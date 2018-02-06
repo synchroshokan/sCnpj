@@ -3,6 +3,17 @@ use Symfony\Component\DomCrawler\Crawler;
 
 require __DIR__.'/../vendor/autoload.php';
 
+
+function limpaString($str) { 
+    $str = preg_replace('/[áàãâä]/ui', 'a', $str);
+    $str = preg_replace('/[éèêë]/ui', 'e', $str);
+    $str = preg_replace('/[íìîï]/ui', 'i', $str);
+    $str = preg_replace('/[óòõôö]/ui', 'o', $str);
+    $str = preg_replace('/[úùûü]/ui', 'u', $str);
+    $str = preg_replace('/[ç]/ui', 'c', $str);
+    return $str;
+}
+
 $xml = <<<'XML'
  <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/REC-html40/loose.dtd">\n
       <html>\n
@@ -106,18 +117,65 @@ $xml = <<<'XML'
       \t</body>\n
       </html>\n
 XML;
+$array = array();
+$array2 = array();
+$selector = '.td-title3';
 
 $crawler = new Crawler($xml);
 
-$filter = $crawler->filter('body > div');
+$filter = $crawler->filter('.td-conteudotwo');
 
+foreach ($filter as $e) {
+	$array[] = $e->nodeValue;
+}
+
+$filter2 = $crawler->filter($selector);
+
+foreach ($filter2 as $e2) {
+	$array2[] = $e2->nodeValue;
+}
+
+$array2 = array_map(function ($array2) {
+	$array2 = trim(preg_replace('/\s+/', '_', $array2));
+	$array2 = str_replace('\t', '', $array2);
+	$array2 = str_replace('\n', '', $array2);
+	$array2 = strtolower($array2);
+	return limpaString($array2);
+}, $array2);
+
+$array = array_map(function ($array) {
+	$array = trim(preg_replace('/\s+/', ' ', $array));
+	$array = str_replace('\t', '', $array);
+	$array = str_replace('\n', '', $array);
+	return $array;
+}, $array);
+
+for ($i=0; $i < count($array); $i++) { 
+	$array3[$array2[$i]] = $array[$i];
+}
+
+
+dump($array3);
+
+/**
 $string = str_replace('\t', '', $filter->text());
 
 $string = str_replace('\n', '', $string);
 
-$string = trim(preg_replace('/\s+/', ' ', $string));
+$string = trim(preg_replace('/\s+/', '', $string));
 
-$array = explode('\n',$string);
+$array = explode(' ',$string);
 
-echo "______________________________________";
+for ($a=0; $a < count($array); $a++) { 
+	echo $a .' - '.strlen($array[$a]). '<br>';
+}
+
+for ($a=0; $a < count($array); $a++) {
+	if (strlen($array[$a]) < 1) {
+		unset($array[$a]);
+	}
+}
+
+echo "<hr>";
 dump($filter, $filter->text(), $array);
+*/
