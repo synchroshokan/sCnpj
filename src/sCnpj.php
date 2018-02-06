@@ -196,6 +196,30 @@ class sCnpj
 		$this->template->load('sintegra', $result);
 	}
 
+	/**
+	 * Faz consulta com site do sintegra
+	 * @return [array] [quando feita com sucesso retorna um array com as seguinte chaves
+	 * data_da_consulta
+	 * cnpj
+	 * inscricao_estadual
+	 * uf
+	 * razao_social
+	 * logradouro
+	 * numero
+	 * complemento
+	 * bairro
+	 * municipio
+	 * cep
+	 * endereco_eletronico
+	 * telefone
+	 * atividade_economica
+	 * data_da_inscricao_estadual
+	 * situacao_cadastral_atual
+	 * data_desta_situacao_cadastral
+	 * observacoes
+	 * regime_de_apuracao_de_icms
+	 * ]
+	 */
 	public function consultaSintegra()
 	{
 		$request = $this->http;
