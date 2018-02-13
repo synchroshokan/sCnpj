@@ -1,5 +1,5 @@
 <?php 
-namespace asm;
+namespace ConsultaSimples;
 
 use \GuzzleHttp\Client;
 use Symfony\Component\DomCrawler\Crawler;

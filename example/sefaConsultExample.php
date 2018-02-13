@@ -1,5 +1,5 @@
 <?php 
-use asm\sefaConsult;
+use ConsultaSimples\sefaConsult;
 
 require __DIR__.'/../vendor/autoload.php';
 

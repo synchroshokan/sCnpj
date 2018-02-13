@@ -1,5 +1,5 @@
 <?php 
-namespace asm;
+namespace ConsultaSimples;
 
 use \GuzzleHttp\Client;
 use Symfony\Component\DomCrawler\Crawler;
@@ -9,192 +9,66 @@ use Symfony\Component\DomCrawler\Crawler;
 class sefaConsult
 {
 	/**
-	 * Retorna imagem e cookie da sessão de uma vez
-	 * @return [array] => Retorna um array, com duas strings, uma com uma string base64 e uma string com cookie da sessão
+	 * Seleciona estado para consulta a sefaz
+	 * @param  string $stateString Inicial do estado
+	 * @return [object]            Retorna o objeto com os metodos de consulta da sefaz do estado
 	 */
-	public function getParams()
+	public function estado(string $stateString)
 	{
-		$result = array();
-
-		$request = new Client();
-		$cookie = $request->get('https://app.sefa.pa.gov.br/Sintegra/');
-		$cookie = $cookie->getHeaders()['Set-Cookie'][0];
-
-		$requestImg = $request->get('https://app.sefa.pa.gov.br/Sintegra/image/imagemAntiRobo/1.jpg', [
-			'headers' => [
-				'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-				'Accept-Encoding' => 'gzip, deflate, br',
-				'Accept-Language' => 'en-US,en;q=0.9',
-				'Cache-Control' => 'max-age=0',
-				'Connection' => 'keep-alive',
-				'Cookie' => $cookie,
-				'Host' => 'app.sefa.pa.gov.br',
-				'Upgrade-Insecure-Requests' => 1,
-				'User-Agent' => $_SERVER['HTTP_USER_AGENT']
-			]
-		]);
-
-		$requestImg = $requestImg->getBody()->getContents();
-
-		$result['cookie'] = $cookie;
-		$result['img'] = 'data:image/png;base64,'.base64_encode($requestImg);
-
-		return $result;
+		$state = strtolower($stateString);
+		switch ($state) {
+			case 'pa':
+				return new \ConsultaSimples\Sintegra\ConsultaPara;
+				break;
+			default:
+				throw new \Exception('Estado não encontrado');
+				break;
+		}
 	}
 
 	/**
-	 * Retorna apenas string no formato para por em uma tag HTML <img>
-	 * @return [mixed] 
+	 * Remove simbolos da string de cnpj
+	 * @param  [string] $input => input com a inscrição estadual ou cnpj 
+	 * @return [string]        	  retorna string sanitizada
 	 */
-	public function getImage()
+	public function cleanInput(string $input)
 	{
-		$request = new Client();
-		$cookie = $this->getCookie();
+		$cleanInput = str_replace('.', '', $input);
+		$cleanInput = str_replace('/', '', $cleanInput);
+		$cleanInput = str_replace('-', '', $cleanInput);
 
-		$requestImg = $request->get('https://app.sefa.pa.gov.br/Sintegra/image/imagemAntiRobo/1.jpg', [
-			'headers' => [
-				'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-				'Accept-Encoding' => 'gzip, deflate, br',
-				'Accept-Language' => 'en-US,en;q=0.9',
-				'Cache-Control' => 'max-age=0',
-				'Connection' => 'keep-alive',
-				'Cookie' => $cookie,
-				'Host' => 'app.sefa.pa.gov.br',
-				'Upgrade-Insecure-Requests' => 1,
-				'User-Agent' => $_SERVER['HTTP_USER_AGENT']
-			]
-		]);
-
-		$requestImg = $requestImg->getBody()->getContents();
-		$requestImg = base64_encode($requestImg);
-		$result = 'data:image/png;base64,'.$requestImg;
-
-		return $result;
+		return $cleanInput;
 	}
 
 	/**
-	 * Retorna apenas o cookie da sessão da pagina
-	 * @return [string]
+	 * Verifica se input é um cnpj valido
+	 * @param  [string] $input => string limpa
+	 * @return [boolean]          TRUE/FALSE
 	 */
-	public function getCookie()
+	public function validarCnpj(string $input)
 	{
-		$request = new Client();
-		$cookie = $request->get('https://app.sefa.pa.gov.br/Sintegra/');
-		$cookie = $cookie->getHeaders()['Set-Cookie'][0];		
-		return $cookie;
-	}
+		 if (!is_scalar($input)) {
+            return false;
+        }
 
-	/**
-	 * Faz consulta com site do sintegra
-	 * @return [array] [quando feita com sucesso retorna um array com as seguinte chaves
-	 * data_da_consulta
-	 * cnpj
-	 * inscricao_estadual
-	 * uf
-	 * razao_social
-	 * logradouro
-	 * numero
-	 * complemento
-	 * bairro
-	 * municipio
-	 * cep
-	 * endereco_eletronico
-	 * telefone
-	 * atividade_economica
-	 * data_da_inscricao_estadual
-	 * situacao_cadastral_atual
-	 * data_desta_situacao_cadastral
-	 * observacoes
-	 * regime_de_apuracao_de_icms
-	 * ]
-	 */
-	public function consultar(string $cnpj, string $cookie, string $solveCaptcha, $option = 1)
-	{
-		$request = new Client();
-		$finalResult = array();
-
-		$headers = [
-			'Accept' => 'text/html, */*',
-			'Accept-Encoding' => 'gzip, deflate, br',
-			'Accept-Language' => 'en-US,en;q=0.9',
-			'Connection' => 'keep-alive',
-			'Content-Length' => '36',
-			'Content-Type' => 'application/x-www-form-urlencoded',
-			'Cookie' => $cookie,
-			'Host' => 'app.sefa.pa.gov.br',
-			'Origin' => 'https://app.sefa.pa.gov.br',
-			'Referer' => 'https://app.sefa.pa.gov.br/Sintegra/',
-			'User-Agent' => $_SERVER['HTTP_USER_AGENT'],
-			'X-Requested-With' => 'XMLHttpRequest'
-		];
-
-		$params = array(
-			'CNPJ' => $cnpj,
-			'OP' => $option,
-			'CODIGO' => $solveCaptcha
-		);
-
-		$consulta = $request->post('https://app.sefa.pa.gov.br/Sintegra/consulta.do', [
-			'headers' => $headers,
-			'form_params' => $params
-		]);
-
-		// criação do link para consulta
-		$crawler = new Crawler($consulta->getBody()->getContents());
-		$consultLink = $crawler->filter('a');
-		$link = $consultLink->attr('href');
-		$sintegraLink = 'https://app.sefa.pa.gov.br'.$link;
-
-		$sintegraHeaders = [
-			'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-			'Accept-Encoding' => 'gzip, deflate, br',
-			'Accept-Language' => 'en-US,en;q=0.9',
-			'Connection' => 'keep-alive',
-			'Cookie' => $cookie,
-			'Host' => 'app.sefa.pa.gov.br',
-			'Referer' => 'https://app.sefa.pa.gov.br/Sintegra/',
-			'Upgrade-Insecure-Requests' => 1,
-			'User-Agent' => $_SERVER['HTTP_USER_AGENT']
-		];
-
-		$result = $request->post($sintegraLink, [
-			'headers' => $sintegraHeaders
-		]);
-
-		$sintegraCrawlerResult = new Crawler($result->getBody()->getContents());
-
-		$titleField = $sintegraCrawlerResult->filter('.td-title3'); 
-		$dataField = $sintegraCrawlerResult->filter('.td-conteudotwo');
-
-		foreach ($dataField as $data) {
-			$valueDataField[] = $data->nodeValue;
-		}
-
-		foreach ($titleField as $data) {
-			$keyTitleField[] = $data->nodeValue;
-		}
-
-		$keyValues = array_map(function ($value) {
-			$value = trim(preg_replace('/\s+/', '_', $value), ':');
-			$value = str_replace('\t', '', $value);
-			$value = str_replace('\n', '', $value);
-			$value = strtolower($value);
-			$value = $this->limpaString($value);
-			return $value;
-		}, $keyTitleField);
-
-		$values = array_map(function ($value) {
-			$value = trim(preg_replace('/\s+/', ' ', $value), ' ');
-			$value = str_replace('\t', '', $value);
-			$value = str_replace('\n', '', $value);
-			return $value;
-		}, $valueDataField);		
-
-		foreach ($values as $key => $value) {
-			$finalResult[$keyValues[$key]] = $value;
-		}
-
-		return $finalResult;
+        // Code ported from jsfromhell.com
+        $cleanInput = preg_replace('/\D/', '', $input);
+        $b = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+        if ($cleanInput < 1) {
+            return false;
+        }
+        if (mb_strlen($cleanInput) != 14) {
+            return false;
+        }
+        for ($i = 0, $n = 0; $i < 12; $n += $cleanInput[$i] * $b[++$i]);
+        if ($cleanInput[12] != ((($n %= 11) < 2) ? 0 : 11 - $n)) {
+            return false;
+        }
+        for ($i = 0, $n = 0; $i <= 12; $n += $cleanInput[$i] * $b[$i++]);
+        if ($cleanInput[13] != ((($n %= 11) < 2) ? 0 : 11 - $n)) {
+            return false;
+        }
+        return true;
 	}
 
 	public function limpaString($str) { 
