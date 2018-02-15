@@ -20,6 +20,9 @@ class sefaConsult
 			case 'pa':
 				return new \ConsultaSimples\Sintegra\ConsultaPara;
 				break;
+			case 'ma':
+				return new \ConsultaSimples\Sintegra\ConsultaMaranhao;
+				break;
 			default:
 				throw new \Exception('Estado não encontrado');
 				break;
