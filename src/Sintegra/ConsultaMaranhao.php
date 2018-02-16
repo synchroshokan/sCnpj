@@ -48,6 +48,41 @@ class ConsultaMaranhao
 
 	public function consultar(string $input, string $cookie, string $solveCaptcha)
 	{
+		$http = new Client();
+		$validator = new sefaConsult();
 
+		$params = [
+			'cnpj' => $input,
+			'captcha' => $solveCaptcha,
+			'cookie' => $cookie,
+		];
+
+		if (!$this->validarCnpj($input)) {
+			//mudar os parametros de inscrição estadual
+			$params['ie'] = $input;
+			unset($params['cnpj']);
+		}
+
+		$headers = [
+			'Accept' => 'image/webp,image/apng,image/*,*/*;q=0.8',
+			'Accept-Encoding' => 'gzip, deflate',
+			'Accept-Language' => 'en-US,en;q=0.9',
+			'Connection' => 'keep-alive',
+			'Cookie' => $cookie,
+			'Host' => 'aplicacoes.ma.gov.br',
+			'Referer:http' => '//aplicacoes.ma.gov.br/sintegra/jsp/consultaSintegra/consultaSintegraFiltro.jsf',
+			'User-Agent' => $_SERVER['HTTP_USER_AGENT']
+		];	
+
+		$sefaConsult = $http->request('POST', 'http://aplicacoes.ma.gov.br/sintegra/jsp/consultaSintegra/consultaSintegraFiltro.jsf', [
+			'headers' => $headers,
+			'form_params' => $params
+		]);
+
+		$sefaResult = $sefaConsult->getBody()->getContents();
+
+		$crawler = new Crawler($sefaResult);
+
+		dump($crawler);	
 	}
 }
