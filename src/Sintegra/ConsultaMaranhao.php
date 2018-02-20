@@ -51,10 +51,20 @@ class ConsultaMaranhao
 		$http = new Client();
 		$validator = new sefaConsult();
 
+		// cnpj params
 		$params = [
-			'cnpj' => $input,
-			'captcha' => $solveCaptcha,
-			'cookie' => $cookie,
+			'AJAXREQUEST' => '_viewRoot',
+			'form1' => [
+				'form1', [
+					'tipoEmissao' => 2,
+					'cpfCnpj' => $input,
+					'j_id23' => $solveCaptcha,
+					'panel_loadingOpenedState' => '',
+			]
+		],
+			'javax.faces.ViewState' => 'j_id1',
+			'form1' => ['j_id29:form1' => 'j_id29'],
+			'AJAX' => ['EVENTS_COUNT' => '1']
 		];
 
 		if (!$this->validarCnpj($input)) {
