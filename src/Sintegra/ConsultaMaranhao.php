@@ -48,43 +48,46 @@ class ConsultaMaranhao
 
 	public function consultar(string $input, string $cookie, string $solveCaptcha)
 	{
+		setcookie('id');
+		$_COOKIE['id'] += 1;
+
 		$http = new Client();
 		$validator = new sefaConsult();
 
 		// cnpj params
 		$params = [
 			'AJAXREQUEST' => '_viewRoot',
-			'form1' => [
-				'form1', [
-					'tipoEmissao' => 2,
-					'cpfCnpj' => $input,
-					'j_id23' => $solveCaptcha,
-					'panel_loadingOpenedState' => '',
-			]
-		],
-			'javax.faces.ViewState' => 'j_id1',
-			'form1' => ['j_id29:form1' => 'j_id29'],
-			'AJAX' => ['EVENTS_COUNT' => '1']
+			'form1' => 'form1',
+			'form1:tipoEmissao' => 2,
+			'form1:cpfCnpj' => $input,
+			'form1:j_id23' => $solveCaptcha,
+			'form1:panel_loadingOpenedState' => '',
+			'javax.faces.ViewState' => 'j_id'.$_COOKIE['id'],
+			'form1:j_id29' => 'form1:j_id29',
+			'AJAX:EVENTS_COUNT' => 1
 		];
 
-		if (!$this->validarCnpj($input)) {
+		if (!$validator->validarCnpj($input)) {
 			//mudar os parametros de inscrição estadual
 			$params['ie'] = $input;
 			unset($params['cnpj']);
 		}
 
 		$headers = [
-			'Accept' => 'image/webp,image/apng,image/*,*/*;q=0.8',
+			'Accept' => '*/*',
 			'Accept-Encoding' => 'gzip, deflate',
-			'Accept-Language' => 'en-US,en;q=0.9',
+			'Accept-Language' => 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
 			'Connection' => 'keep-alive',
+			'Content-Length' => 222,
+			'Content-Type' => 'application/x-www-form-urlencoded; charset=UTF-8',
 			'Cookie' => $cookie,
 			'Host' => 'aplicacoes.ma.gov.br',
-			'Referer:http' => '//aplicacoes.ma.gov.br/sintegra/jsp/consultaSintegra/consultaSintegraFiltro.jsf',
-			'User-Agent' => $_SERVER['HTTP_USER_AGENT']
+			'Origin' => 'http://aplicacoes.ma.gov.br',
+			'Referer' => 'http://aplicacoes.ma.gov.br/sintegra/jsp/consultaSintegra/consultaSintegraFiltro.jsf',
+			'User-Agent' => $_SERVER['HTTP_USER_AGENT'],
 		];	
 
-		$sefaConsult = $http->request('POST', 'http://aplicacoes.ma.gov.br/sintegra/jsp/consultaSintegra/consultaSintegraFiltro.jsf', [
+		$sefaConsult = $http->request('GET', 'http://aplicacoes.ma.gov.br/sintegra/jsp/consultaSintegra/consultaSintegraFiltro.jsf', [
 			'headers' => $headers,
 			'form_params' => $params
 		]);
@@ -92,7 +95,8 @@ class ConsultaMaranhao
 		$sefaResult = $sefaConsult->getBody()->getContents();
 
 		$crawler = new Crawler($sefaResult);
+		$result = $crawler->filter('.texto');
 
-		dump($crawler);	
+		return $result->text();
 	}
 }
